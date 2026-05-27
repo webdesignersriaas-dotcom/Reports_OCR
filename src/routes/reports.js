@@ -22,11 +22,13 @@ router.post("/extract", requireReportsOcrToken, async (req, res) => {
   }
 
   try {
+    const startedAt = Date.now();
     const result = await extractReportWithOpenAI({
       reportType,
       fileUrl,
       fileName,
     });
+    res.set("X-Reports-OCR-Duration-Ms", String(Date.now() - startedAt));
     return res.json(result);
   } catch (error) {
     const statusCode = error.statusCode || 502;

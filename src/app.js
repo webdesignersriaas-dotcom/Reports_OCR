@@ -1,7 +1,13 @@
 const express = require("express");
 const cors = require("cors");
 
-const { OPENAI_API_KEY, REPORTS_OCR_TOKEN, OPENAI_MODEL } = require("./config");
+const {
+  OPENAI_API_KEY,
+  REPORTS_OCR_TOKEN,
+  OPENAI_MODEL,
+  OPENAI_TIMEOUT_MS,
+  OPENAI_MAX_OUTPUT_TOKENS,
+} = require("./config");
 const reportsRouter = require("./routes/reports");
 
 const app = express();
@@ -16,6 +22,8 @@ app.get("/health", (_req, res) => {
     openaiConfigured: Boolean(OPENAI_API_KEY),
     tokenConfigured: Boolean(REPORTS_OCR_TOKEN),
     model: OPENAI_MODEL,
+    openaiTimeoutMs: OPENAI_TIMEOUT_MS,
+    maxOutputTokens: OPENAI_MAX_OUTPUT_TOKENS,
   });
 });
 
