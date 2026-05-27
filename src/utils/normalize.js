@@ -1,0 +1,88 @@
+function normalizeStatus(raw) {
+  const value = (raw || "").toString().trim().toUpperCase();
+  if (!value) return "UNKNOWN";
+  if (["NORMAL", "OK", "GOOD"].includes(value)) return "NORMAL";
+  if (["BORDERLINE", "LOW", "HIGH", "ABNORMAL", "CRITICAL"].includes(value)) {
+    return value;
+  }
+  return value;
+}
+
+function humanizeKey(key) {
+  return (key || "")
+    .toString()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (m) => m.toUpperCase());
+}
+
+function normalizeFieldRows(rawFields, expectedFields) {
+  const expectedByKey = new Map(expectedFields.map(([key, label]) => [key, label]));
+  const outByKey = new Map();
+
+  for (const raw of Array.isArray(rawFields) ? rawFields : []) {
+    if (!raw || typeof raw !== "object") continue;
+    const key = (raw.key || raw.name || raw.metric || "")
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+    if (!key) continue;
+    const label = (raw.label || expectedByKey.get(key) || humanizeKey(key))
+      .toString()
+      .trim();
+    const value = raw.value == null ? null : raw.value.toString().trim();
+    const unit = raw.unit == null ? "" : raw.unit.toString().trim();
+    const score = Number.isFinite(Number(raw.score))
+      ? Math.max(0, Math.min(100, Math.round(Number(raw.score))))
+      : null;
+    const confidence = Number.isFinite(Number(raw.confidence))
+      ? Math.max(0, Math.min(1, Number(raw.confidence)))
+      : null;
+    outByKey.set(key, {
+      key,
+      label,
+      value: value && unit ? `${value} ${unit}` : value,
+      unit,
+      status: normalizeStatus(raw.status),
+      score: score ?? 70,
+      confidence: confidence ?? 0.6,
+    });
+  }
+
+  for (const [key, label] of expectedFields) {
+    if (!outByKey.has(key)) {
+      outByKey.set(key, {
+        key,
+        label,
+        value: null,
+        unit: "",
+        status: "UNKNOWN",
+        score: 70,
+        confidence: 0,
+      });
+    }
+  }
+
+  return [...outByKey.values()].filter((row) => {
+    return row.value != null && row.value.toString().trim() !== "";
+  });
+}
+
+function normalizeExtractionResult(raw, reportType, expectedFields) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  const fields = normalizeFieldRows(source.fields, expectedFields);
+  return {
+    success: true,
+    report_type: reportType,
+    fields,
+    lft_score: source.lft_score ?? null,
+    cbc_score: source.cbc_score ?? null,
+    status: source.status ?? null,
+    issues: Array.isArray(source.issues) ? source.issues.map(String) : [],
+    parameters: Array.isArray(source.parameters) ? source.parameters : [],
+    raw_text_summary: source.raw_text_summary ?? null,
+  };
+}
+
+module.exports = { normalizeExtractionResult };
