@@ -33,14 +33,14 @@ const REPORT_FIELDS = {
     ["prolactin", "Prolactin"],
   ],
   varicocele_usg: [
-    ["grade", "Grade"],
+    ["varicocele_grade", "Varicocele Grade"],
     ["testis_size", "Testis Size"],
-    ["structure", "Structure"],
+    ["testis_structure", "Testis Structure"],
     ["hydrocele", "Hydrocele"],
     ["cyst", "Cyst"],
   ],
   varicocele_doppler: [
-    ["grade", "Grade"],
+    ["varicocele_grade", "Varicocele Grade"],
     ["vein_dilation", "Vein Dilation"],
     ["reflux", "Reflux"],
     ["blood_flow", "Blood Flow"],

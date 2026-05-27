@@ -15,24 +15,49 @@ function humanizeKey(key) {
     .replace(/\b\w/g, (m) => m.toUpperCase());
 }
 
+function canonicalKey(rawKey, expectedByKey) {
+  const key = (rawKey || "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  if (!key) return "";
+  if (expectedByKey.has(key)) return key;
+  if (key === "grade") return "varicocele_grade";
+  if (key === "structure") return "testis_structure";
+  if (key.includes("testis") && key.includes("structure")) {
+    return "testis_structure";
+  }
+  if (key.includes("varicocele") && key.includes("grade")) {
+    return "varicocele_grade";
+  }
+  return key;
+}
+
+function normalizedValueWithUnit(value, unit) {
+  if (value == null) return null;
+  const text = value.toString().trim();
+  const unitText = unit == null ? "" : unit.toString().trim();
+  if (!text) return text;
+  if (!unitText || /^[.;:,-]+$/.test(unitText)) return text;
+  if (text.toLowerCase().includes(unitText.toLowerCase())) return text;
+  return `${text} ${unitText}`;
+}
+
 function normalizeFieldRows(rawFields, expectedFields) {
   const expectedByKey = new Map(expectedFields.map(([key, label]) => [key, label]));
   const outByKey = new Map();
 
   for (const raw of Array.isArray(rawFields) ? rawFields : []) {
     if (!raw || typeof raw !== "object") continue;
-    const key = (raw.key || raw.name || raw.metric || "")
-      .toString()
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "_")
-      .replace(/^_+|_+$/g, "");
+    const key = canonicalKey(raw.key || raw.name || raw.metric || raw.label, expectedByKey);
     if (!key) continue;
     const label = (raw.label || expectedByKey.get(key) || humanizeKey(key))
       .toString()
       .trim();
-    const value = raw.value == null ? null : raw.value.toString().trim();
     const unit = raw.unit == null ? "" : raw.unit.toString().trim();
+    const value = normalizedValueWithUnit(raw.value, unit);
     const score = Number.isFinite(Number(raw.score))
       ? Math.max(0, Math.min(100, Math.round(Number(raw.score))))
       : null;
@@ -42,7 +67,7 @@ function normalizeFieldRows(rawFields, expectedFields) {
     outByKey.set(key, {
       key,
       label,
-      value: value && unit ? `${value} ${unit}` : value,
+      value,
       unit,
       status: normalizeStatus(raw.status),
       score: score ?? 70,
