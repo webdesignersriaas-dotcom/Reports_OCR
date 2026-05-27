@@ -19,18 +19,15 @@ const REPORT_FIELDS = {
     ["platelets", "Platelets"],
   ],
   semen: [
-    ["volume", "Volume"],
     ["sperm_count", "Sperm Count"],
-    ["total_motility", "Total Motility"],
-    ["progressive_motility", "Progressive Motility"],
-    ["normal_forms", "Normal Forms"],
+    ["motility", "Motility"],
+    ["morphology", "Morphology"],
+    ["volume", "Volume"],
   ],
   hormone: [
     ["testosterone", "Testosterone"],
-    ["free_testosterone", "Free Testosterone"],
     ["fsh", "FSH"],
     ["lh", "LH"],
-    ["prolactin", "Prolactin"],
   ],
   varicocele_usg: [
     ["varicocele_grade", "Varicocele Grade"],

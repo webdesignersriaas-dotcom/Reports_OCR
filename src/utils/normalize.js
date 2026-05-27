@@ -24,6 +24,16 @@ function canonicalKey(rawKey, expectedByKey) {
     .replace(/^_+|_+$/g, "");
   if (!key) return "";
   if (expectedByKey.has(key)) return key;
+  if (key === "total_motility" || key === "progressive_motility" || key.includes("motility")) {
+    return "motility";
+  }
+  if (key === "normal_forms" || key.includes("morphology") || key.includes("normal_form")) {
+    return "morphology";
+  }
+  if (key === "total_testosterone" || (key.includes("testosterone") && !key.includes("free"))) {
+    return "testosterone";
+  }
+  if (key.includes("sperm") && key.includes("count")) return "sperm_count";
   if (key === "grade") return "varicocele_grade";
   if (key === "structure") return "testis_structure";
   if (key.includes("testis") && key.includes("structure")) {
@@ -53,7 +63,7 @@ function normalizeFieldRows(rawFields, expectedFields) {
     if (!raw || typeof raw !== "object") continue;
     const key = canonicalKey(raw.key || raw.name || raw.metric || raw.label, expectedByKey);
     if (!key) continue;
-    const label = (raw.label || expectedByKey.get(key) || humanizeKey(key))
+    const label = (expectedByKey.get(key) || raw.label || humanizeKey(key))
       .toString()
       .trim();
     const unit = raw.unit == null ? "" : raw.unit.toString().trim();
